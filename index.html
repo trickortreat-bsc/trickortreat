@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trick or Treat (TREAT) — The First Treat Is Free</title>
+<meta name="description" content="Trick or Treat (TREAT) on BNB Chain. 5,000 shares of 1,000,000 TREAT. Your first share is free — post first, then claim. The price rises as the bucket empties.">
+<link rel="icon" href="images/logo.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.4/dist/ethers.umd.min.js"></script>
+<style>
+  :root{
+    --bg:#0a0510; --bg2:#12081f; --panel:#170b28; --line:#2b1745;
+    --ink:#f5ead9; --dim:#b9a8cc; --orange:#ff7b1c; --amber:#ffb347;
+    --purple:#8b5cf6; --ok:#4ade80; --err:#f87171;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:Inter,system-ui,sans-serif;line-height:1.55;overflow-x:hidden}
+  body::before{content:"";position:fixed;inset:0;background:
+    radial-gradient(900px 480px at 85% -5%, rgba(139,92,246,.20), transparent 60%),
+    radial-gradient(800px 500px at 50% -10%, rgba(255,123,28,.16), transparent 60%),
+    linear-gradient(180deg,#0a0510, #0d0616 55%, #0a0510);z-index:-2}
+  .ember{position:fixed;bottom:-12px;border-radius:50%;background:radial-gradient(circle,#ffd9a0,#ff7b1c 60%,transparent 70%);opacity:0;z-index:-1;animation:rise linear infinite}
+  @keyframes rise{0%{transform:translateY(0) translateX(0);opacity:0}8%{opacity:.75}100%{transform:translateY(-105vh) translateX(4vw);opacity:0}}
+  @media (prefers-reduced-motion: reduce){.ember{display:none}}
+  a{color:var(--amber)}
+  .wrap{max-width:1060px;margin:0 auto;padding:0 20px}
+  header{position:sticky;top:0;z-index:20;background:rgba(10,5,16,.82);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  .nav{display:flex;align-items:center;gap:14px;padding:12px 0}
+  .nav img{width:38px;height:38px;border-radius:50%}
+  .brand{font-family:Fraunces,serif;font-weight:900;font-size:1.15rem;letter-spacing:.2px}
+  .brand span{color:var(--orange)}
+  .nav .sp{flex:1}
+  .nav a.lnk{color:var(--dim);text-decoration:none;font-size:.92rem;margin-right:18px}
+  .nav a.lnk:hover{color:var(--ink)}
+  button{font-family:inherit;cursor:pointer;border:none;border-radius:12px;font-weight:600}
+  .btn{background:linear-gradient(180deg,#ff8b2d,#f06400);color:#fff;padding:11px 20px;font-size:.95rem;box-shadow:0 6px 22px rgba(255,123,28,.35)}
+  .btn:hover{filter:brightness(1.07)}
+  .btn.ghost{background:transparent;border:1px solid var(--line);color:var(--ink);box-shadow:none}
+  .btn.purple{background:linear-gradient(180deg,#9d6bff,#7c3aed);box-shadow:0 6px 22px rgba(139,92,246,.35)}
+  .btn:disabled{opacity:.55;cursor:wait}
+  .hero{text-align:center;padding:64px 0 30px}
+  .hero img.logo{width:190px;height:190px;border-radius:50%;box-shadow:0 0 0 1px #3a1c5e,0 0 90px rgba(255,123,28,.35)}
+  h1{font-family:Fraunces,serif;font-weight:900;font-size:clamp(2.4rem,6vw,4rem);line-height:1.05;margin:22px 0 6px}
+  h1 .or{color:var(--orange)}
+  .tag{color:var(--dim);font-size:1.08rem;max-width:640px;margin:0 auto}
+  .tag b{color:var(--ink)}
+  .cta{margin-top:26px;display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+  .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:38px 0 8px}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 10px;text-align:center}
+  .stat .v{font-family:Fraunces,serif;font-weight:900;font-size:1.35rem;color:var(--amber)}
+  .stat .k{color:var(--dim);font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;margin-top:3px}
+  .bar{height:10px;background:#1d0f33;border-radius:99px;overflow:hidden;margin:14px 0 4px;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;width:0%;background:linear-gradient(90deg,var(--purple),var(--orange));transition:width .8s}
+  .barlbl{color:var(--dim);font-size:.85rem;text-align:center}
+  section{padding:44px 0 8px}
+  h2{font-family:Fraunces,serif;font-weight:900;font-size:1.8rem;margin-bottom:8px}
+  h2 .or{color:var(--orange)}
+  .sub{color:var(--dim);max-width:680px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;margin-top:18px}
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:18px}
+  .step{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+  .step .n{font-family:Fraunces,serif;font-weight:900;color:var(--orange);font-size:1.5rem}
+  .step p{color:var(--dim);font-size:.94rem;margin-top:4px}
+  textarea,input[type=text]{width:100%;background:#0d0616;border:1px solid var(--line);border-radius:12px;color:var(--ink);padding:12px;font-family:inherit;font-size:.95rem}
+  textarea{resize:vertical;min-height:150px;line-height:1.5}
+  .row{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px;align-items:center}
+  .status{margin-top:12px;font-size:.93rem;min-height:1.3em}
+  .status.ok{color:var(--ok)} .status.err{color:var(--err)} .status.wait{color:var(--amber)}
+  .qty{display:flex;align-items:center;gap:14px}
+  .qty button{width:42px;height:42px;font-size:1.25rem;background:#24123f;color:var(--ink);border:1px solid var(--line)}
+  .qty .qv{font-family:Fraunces,serif;font-weight:900;font-size:1.6rem;min-width:52px;text-align:center}
+  .cost{font-size:1.05rem;color:var(--dim)} .cost b{color:var(--amber);font-size:1.2rem}
+  .tiers{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+  .tier{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px;text-align:center}
+  .tier .p{font-family:Fraunces,serif;font-weight:900;font-size:1.25rem;color:var(--amber)}
+  .tier .k{color:var(--dim);font-size:.83rem;margin-top:2px}
+  details{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 20px;margin-top:14px}
+  summary{cursor:pointer;font-weight:600}
+  pre{white-space:pre-wrap;word-break:break-word;background:#0d0616;border:1px solid var(--line);border-radius:12px;padding:14px;font-size:.83rem;line-height:1.5;margin-top:12px;color:#e8dcc8}
+  .faq p{margin-top:10px;color:var(--dim)} .faq b{color:var(--ink)}
+  footer{border-top:1px solid var(--line);margin-top:52px;padding:26px 0 40px;color:var(--dim);font-size:.9rem}
+  .mono{font-family:ui-monospace,Menlo,monospace;font-size:.85rem;word-break:break-all}
+  #toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%) translateY(20px);background:#24123f;border:1px solid var(--purple);color:var(--ink);padding:11px 18px;border-radius:12px;opacity:0;pointer-events:none;transition:.3s;z-index:50;max-width:90vw;text-align:center}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (max-width:760px){.stats{grid-template-columns:repeat(2,1fr)}.steps{grid-template-columns:1fr}.tiers{grid-template-columns:repeat(2,1fr)}.nav a.lnk{display:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav">
+  <img src="images/logo.webp" alt="Trick or Treat logo">
+  <div class="brand">Trick <span>or</span> Treat</div>
+  <div class="sp"></div>
+  <a class="lnk" href="#free">Free treat</a>
+  <a class="lnk" href="#buy">Buy</a>
+  <a class="lnk" href="#ladder">Price ladder</a>
+  <a class="lnk" href="#agents">For agents</a>
+  <button class="btn ghost" id="connectBtn">Connect wallet</button>
+</div></header>
+
+<div class="wrap">
+  <div class="hero">
+    <img class="logo" src="images/logo.webp" alt="Jack, the Trick or Treat pumpkin">
+    <h1>Trick <span class="or">or</span> Treat</h1>
+    <p class="tag">One bucket. <b>5,000 treats</b> — each treat is a share of <b>1,000,000 TREAT</b> on BNB Chain.<br>
+    Your first treat is <b>free</b>. After that, the price climbs as the bucket empties.</p>
+    <div class="cta">
+      <a href="#free"><button class="btn">Claim your free treat</button></a>
+      <a href="#buy"><button class="btn purple">Buy treats</button></a>
+    </div>
+    <div class="stats">
+      <div class="stat"><div class="v">5,000</div><div class="k">Treats (shares)</div></div>
+      <div class="stat"><div class="v" id="statPrice">0.0005 BNB</div><div class="k">Price now</div></div>
+      <div class="stat"><div class="v" id="statOut">0</div><div class="k">Treats claimed</div></div>
+    </div>
+    <div class="bar"><i id="barFill"></i></div>
+    <div class="barlbl" id="barLbl">Loading the bucket…</div>
+  </div>
+
+  <section id="free">
+    <h2>The first treat is <span class="or">free</span> — post first</h2>
+    <p class="sub">Just like real trick-or-treating, you knock first. Post the message below on X, then claim. One free treat per wallet, and one X account can power only one claim. No Agent ID needed — agents and humans are both welcome.</p>
+    <div class="steps">
+      <div class="step"><div class="n">1</div><p><b>Connect your wallet.</b> Your personal post below carries your wallet code.</p></div>
+      <div class="step"><div class="n">2</div><p><b>Post it on X</b> with the one-click button, then copy your post link.</p></div>
+      <div class="step"><div class="n">3</div><p><b>Paste the link and claim.</b> We verify the post, then 1,000,000 TREAT lands in your wallet.</p></div>
+    </div>
+    <div class="card">
+      <textarea id="templateBox" readonly></textarea>
+      <div class="row">
+        <button class="btn" id="postBtn">Post on X</button>
+        <button class="btn ghost" id="copyTplBtn">Copy the post</button>
+      </div>
+      <div class="row">
+        <input type="text" id="postUrl" placeholder="Paste your X post link here — https://x.com/you/status/…">
+      </div>
+      <div class="row">
+        <button class="btn purple" id="freeBtn">Verify &amp; claim my free treat</button>
+      </div>
+      <div class="status" id="freeStatus"></div>
+    </div>
+  </section>
+
+  <section id="buy">
+    <h2>Want more? <span class="or">Just buy.</span></h2>
+    <p class="sub">Paid treats need no post and no permission. Pick an amount — the price is the ladder price at this moment, and every BNB goes to the project treasury.</p>
+    <div class="card">
+      <div class="row" style="justify-content:space-between">
+        <div class="qty">
+          <button id="qMinus">−</button>
+          <div class="qv" id="qVal">1</div>
+          <button id="qPlus">+</button>
+          <div style="color:var(--dim)">treats (max 20 per buy)</div>
+        </div>
+        <div class="cost">Total: <b id="costVal">0.0005 BNB</b></div>
+      </div>
+      <div class="row">
+        <button class="btn" id="paidBtn">Buy treats</button>
+        <div style="color:var(--dim)" id="myBal"></div>
+      </div>
+      <div class="status" id="paidStatus"></div>
+    </div>
+  </section>
+
+  <section id="ladder">
+    <h2>The price <span class="or">climbs</span> as the bucket empties</h2>
+    <p class="sub">Every 250 treats that leave the bucket — claimed free or bought — the next ones cost 0.0001 BNB more. Early trick-or-treaters pay the least; the last 250 treats are the priciest of all. When all 5,000 are gone, the sale is over.</p>
+    <div class="tiers">
+      <div class="tier"><div class="p">0.0005 BNB</div><div class="k">Treats 1 – 250</div></div>
+      <div class="tier"><div class="p">0.0006 BNB</div><div class="k">Treats 251 – 500</div></div>
+      <div class="tier"><div class="p">+0.0001</div><div class="k">Every 250 treats</div></div>
+      <div class="tier"><div class="p">0.0024 BNB</div><div class="k">Final 250 treats</div></div>
+    </div>
+  </section>
+
+  <section id="agents">
+    <h2>For <span class="or">agents</span></h2>
+    <p class="sub">Running this for your human, or for yourself? The full instructions live in <a href="skill.md">skill.md</a> and <a href="llms.txt">llms.txt</a>. The short version is below — the free claim always starts with the human-visible X post, so bring the post to your human for approval before sending it.</p>
+    <details>
+      <summary>Show the full agent prompt</summary>
+      <pre id="agentPrompt"></pre>
+    </details>
+    <div class="row"><button class="btn ghost" id="copyPromptBtn">Copy the agent prompt</button></div>
+  </section>
+
+  <section class="faq">
+    <h2>Questions</h2>
+    <p><b>What exactly is a “treat”?</b><br>One treat = one share = 1,000,000 TREAT tokens, sent to your wallet the moment you claim or buy. TREAT is a plain ERC-20 on BNB Chain: no transfer tax, no admin, no one can mint more.</p>
+    <p><b>Why must I post before the free claim?</b><br>The post is the knock on the door — it is how the free treats find new people. A small gate service checks that your post carries this site's link and your wallet code, then signs a one-time permit the contract verifies. Paid treats skip all of that.</p>
+    <p><b>Can I claim the free treat twice?</b><br>No. One per wallet and one per X account, enforced by the contract itself.</p>
+    <p><b>Where does the money go?</b><br>100% of every paid purchase goes straight to the project treasury, inside the same transaction. Nothing is skimmed by the contract.</p>
+    <p><b>When does the sale end?</b><br>When the 5,000th treat leaves the bucket. There is no timer.</p>
+  </section>
+
+  <footer>
+    <div>Contract (BNB Chain): <span class="mono" id="contractAddr"></span></div>
+    <div style="margin-top:6px">Trick or Treat (TREAT) — a Halloween share sale. Nothing here is financial advice; treats are for fun.</div>
+  </footer>
+</div>
+<div id="toast"></div>
+
+<script>
+const CONFIG = {
+  CONTRACT: "0xe98b80088449C545162BE71e78fF0298382b7ff5",
+  GATE: "https://permit-worker.reuniakbarpunk212.workers.dev/treat",
+  SITE_URL: "https://trickortreat-bsc.github.io/trickortreat/",
+  RPC: "https://bsc-dataseed.binance.org",
+  WC_PROJECT_ID: "ff5985647ed78916bed0155d2ff84a1c",
+  TOTAL: 5000
+};
+const ABI = [
+  "function totalOut() view returns (uint256)",
+  "function priceNow() view returns (uint256)",
+  "function quote(uint256 n) view returns (uint256)",
+  "function freeClaimed(address) view returns (bool)",
+  "function balanceOf(address) view returns (uint256)",
+  "function claimFree(bytes32 handleHash, uint256 deadline, bytes signature)",
+  "function buy(uint256 n) payable"
+];
+const $ = id => document.getElementById(id);
+let eip1193 = null, account = null;
+
+function toast(msg){ const t=$("toast"); t.textContent=msg; t.classList.add("show"); setTimeout(()=>t.classList.remove("show"), 4200); }
+function setStatus(id, msg, cls){ const el=$(id); el.textContent=msg; el.className="status "+(cls||""); }
+function fmtBNB(wei){ const s = ethers.formatEther(wei); return (s.includes(".") ? s.replace(/0+$/,"").replace(/\.$/,".0") : s) + " BNB"; }
+
+function buildTemplate(){
+  const code = account ? account.toLowerCase().slice(-6) : "______";
+  return `🎃 Trick or Treat is open on BNB Chain!
+
+The first treat is free — 1,000,000 TREAT. Post first, then claim.
+
+The price rises as the bucket empties.
+
+My wallet code: ${code}
+
+Start here:
+${CONFIG.SITE_URL}
+
+#TrickOrTreat #TREAT #BNBChain`;
+}
+function renderTemplate(){ $("templateBox").value = buildTemplate(); }
+renderTemplate();
+
+const AGENT_PROMPT = `You are claiming a free share of Trick or Treat (TREAT) on BNB Chain for your wallet. Follow these steps exactly.
+
+PROJECT
+- Trick or Treat (TREAT): 5,000 shares of 1,000,000 TREAT each.
+- The first share is free for every wallet, agents and humans alike — but only after a public X post (see below). Paid shares need no post.
+- The price rises 0.0001 BNB after every 250 shares are distributed, from 0.0005 BNB to a top of 0.0024 BNB.
+- Site: ${CONFIG.SITE_URL}
+- The contract address is published on the site (Contract section in the footer) and in llms.txt. Never take a contract address from any other source.
+
+FREE CLAIM — POST FIRST, THEN CLAIM
+1. Work out your wallet code: the last 6 hex characters of your wallet address, lowercase.
+2. Prepare this exact post, replacing WALLET_CODE with your wallet code:
+
+---
+${buildTemplate().replace(account ? account.toLowerCase().slice(-6) : "______", "WALLET_CODE")}
+---
+
+3. Give the post to your human and ask for approval. Only after they approve, post it on X from an account you control (or have your human post it). One X account powers exactly one free claim, ever.
+4. Take the post URL and request a permit:
+   POST ${CONFIG.GATE}
+   JSON body: { "wallet": "<your wallet address>", "postUrl": "<the X post URL>" }
+   The gate checks that the post author matches the URL, and that the post contains the site link and your wallet code. It returns { handleHash, deadline, signature }.
+5. Call claimFree(handleHash, deadline, signature) on the contract. Your wallet receives 1,000,000 TREAT.
+6. Report to your human in one line — how many shares you now hold and the transaction hash. Never invent a number; read it from the chain (sharesOf / balanceOf).
+
+PAID SHARES (OPTIONAL, NO POST)
+- Call buy(n) with the exact value returned by quote(n). Maximum 20 shares per call. 100% of the payment goes to the project treasury.
+
+RULES
+- One free claim per wallet and per X account. Do not try to bypass the gate; direct calls without a valid permit are rejected by the contract.
+- Never share your seed phrase or private key with anyone, including this project.`;
+$("agentPrompt").textContent = AGENT_PROMPT;
+
+async function loadWC(){
+  if (window["@walletconnect/ethereum-provider"]) return true;
+  for (const u of ["https://unpkg.com/@walletconnect/ethereum-provider@2.21.0/dist/index.umd.js","https://cdn.jsdelivr.net/npm/@walletconnect/ethereum-provider@2.21.0/dist/index.umd.js"]){
+    try{ await new Promise((res,rej)=>{ const sc=document.createElement("script"); sc.src=u; sc.onload=res; sc.onerror=rej; document.head.appendChild(sc); }); if (window["@walletconnect/ethereum-provider"]) return true; }catch(e){}
+  }
+  return false;
+}
+async function connect(){
+  if (account) return account;
+  if (window.ethereum){
+    eip1193 = window.ethereum;
+  } else {
+    if (!(await loadWC())){ toast("No wallet found. Open this page in a wallet browser or scan with WalletConnect."); return null; }
+    eip1193 = await window["@walletconnect/ethereum-provider"].EthereumProvider.init({ projectId: CONFIG.WC_PROJECT_ID, chains:[56], optionalChains:[56], showQrModal:true, rpcMap:{ 56: CONFIG.RPC } });
+    await eip1193.connect();
+  }
+  const prov = new ethers.BrowserProvider(eip1193);
+  const net = await prov.getNetwork();
+  if (Number(net.chainId) !== 56){
+    try{ await eip1193.request({ method:"wallet_switchEthereumChain", params:[{ chainId:"0x38" }] }); }
+    catch(e){ toast("Please switch your wallet to BNB Chain."); return null; }
+  }
+  const signer = await prov.getSigner();
+  account = await signer.getAddress();
+  $("connectBtn").textContent = account.slice(0,6)+"…"+account.slice(-4);
+  renderTemplate();
+  refreshStats(); refreshQuote(); refreshMine();
+  return account;
+}
+$("connectBtn").onclick = connect;
+
+async function readContract(){ return new ethers.Contract(CONFIG.CONTRACT, ABI, new ethers.JsonRpcProvider(CONFIG.RPC)); }
+async function writeContract(){
+  if (!(await connect())) return null;
+  const prov = new ethers.BrowserProvider(eip1193);
+  return new ethers.Contract(CONFIG.CONTRACT, ABI, await prov.getSigner());
+}
+async function refreshStats(){
+  try{
+    const c = await readContract();
+    const out = Number(await c.totalOut());
+    const price = await c.priceNow();
+    $("statOut").textContent = out.toLocaleString("en-US");
+    $("statPrice").textContent = fmtBNB(price);
+    $("barFill").style.width = (out / CONFIG.TOTAL * 100).toFixed(2) + "%";
+    $("barLbl").textContent = out.toLocaleString("en-US") + " of 5,000 treats are gone — " + (CONFIG.TOTAL - out).toLocaleString("en-US") + " left in the bucket.";
+  }catch(e){ $("barLbl").textContent = "The bucket holds 5,000 treats."; }
+}
+async function refreshMine(){
+  if (!account) return;
+  try{
+    const c = await readContract();
+    const bal = await c.balanceOf(account);
+    const shares = Number(bal / (1000000n * 10n ** 18n));
+    $("myBal").textContent = shares > 0 ? "You hold " + shares.toLocaleString("en-US") + " treat" + (shares === 1 ? "" : "s") + " (" + Number(ethers.formatEther(bal)).toLocaleString("en-US") + " TREAT)." : "";
+  }catch(e){}
+}
+refreshStats();
+
+$("postBtn").onclick = async () => {
+  if (!account){ const a = await connect(); if (!a) return; }
+  window.open("https://x.com/intent/tweet?text=" + encodeURIComponent(buildTemplate()), "_blank", "noopener");
+};
+$("copyTplBtn").onclick = async () => {
+  try{ await navigator.clipboard.writeText(buildTemplate()); toast("Post copied — paste it on X."); }
+  catch(e){ $("templateBox").select(); document.execCommand("copy"); toast("Post copied."); }
+};
+$("copyPromptBtn").onclick = async () => {
+  try{ await navigator.clipboard.writeText(AGENT_PROMPT); toast("Agent prompt copied."); }
+  catch(e){ toast("Copy failed — open the section and copy manually."); }
+};
+
+$("freeBtn").onclick = async () => {
+  const url = $("postUrl").value.trim();
+  if (!url){ setStatus("freeStatus", "Paste your X post link first.", "err"); return; }
+  if (!(await connect())) return;
+  setStatus("freeStatus", "Checking your post…", "wait");
+  let permit;
+  try{
+    const r = await fetch(CONFIG.GATE, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ wallet: account, postUrl: url }) });
+    permit = await r.json();
+    if (!r.ok || !permit.signature) throw new Error(permit.error || "That post could not be verified.");
+  }catch(e){ setStatus("freeStatus", e.message || "That post could not be verified.", "err"); return; }
+  setStatus("freeStatus", "Post verified. Claiming your treat…", "wait");
+  try{
+    const c = await writeContract();
+    const tx = await c.claimFree(permit.handleHash, permit.deadline, permit.signature);
+    await tx.wait();
+    setStatus("freeStatus", "Treat claimed — 1,000,000 TREAT is in your wallet. Happy Halloween! 🎃", "ok");
+    refreshStats(); refreshMine();
+  }catch(e){ setStatus("freeStatus", "The claim was rejected by the contract. Have you already claimed your free treat?", "err"); }
+};
+
+let qty = 1;
+async function refreshQuote(){
+  try{
+    const c = await readContract();
+    const q = await c.quote(qty);
+    $("costVal").textContent = fmtBNB(q);
+  }catch(e){}
+}
+$("qMinus").onclick = () => { qty = Math.max(1, qty - 1); $("qVal").textContent = qty; refreshQuote(); };
+$("qPlus").onclick = () => { qty = Math.min(20, qty + 1); $("qVal").textContent = qty; refreshQuote(); };
+refreshQuote();
+
+$("paidBtn").onclick = async () => {
+  if (!(await connect())) return;
+  setStatus("paidStatus", "Sending your buy…", "wait");
+  try{
+    const rc = await readContract();
+    const cost = await rc.quote(qty);
+    const c = await writeContract();
+    const tx = await c.buy(qty, { value: cost });
+    await tx.wait();
+    setStatus("paidStatus", "Done — " + qty + " treat" + (qty === 1 ? "" : "s") + " (" + (qty * 1000000).toLocaleString("en-US") + " TREAT) added to your wallet.", "ok");
+    refreshStats(); refreshQuote(); refreshMine();
+  }catch(e){ setStatus("paidStatus", "The buy did not go through. Check your BNB balance and try again.", "err"); }
+};
+
+$("contractAddr").textContent = CONFIG.CONTRACT;
+
+// ambient embers
+(function(){
+  const N = 14;
+  for (let i = 0; i < N; i++){
+    const s = document.createElement("span");
+    s.className = "ember";
+    const sz = 3 + Math.random() * 5;
+    s.style.width = s.style.height = sz + "px";
+    s.style.left = (Math.random() * 100) + "vw";
+    s.style.animationDuration = (9 + Math.random() * 10) + "s";
+    s.style.animationDelay = (-Math.random() * 14) + "s";
+    document.body.appendChild(s);
+  }
+})();
+</script>
+</body>
+</html>

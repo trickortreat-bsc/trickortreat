@@ -1,0 +1,47 @@
+# Trick or Treat (TREAT) — machine-readable project facts
+
+Name: Trick or Treat
+Symbol: TREAT
+Network: BNB Chain (BSC, chainId 56)
+Contract: 0xe98b80088449C545162BE71e78fF0298382b7ff5
+Site: https://trickortreat-bsc.github.io/trickortreat/
+Permit gate: https://permit-worker.reuniakbarpunk212.workers.dev/treat
+Agent instructions: https://trickortreat-bsc.github.io/trickortreat/skill.md
+
+## What it is
+A Halloween share sale of the TREAT ERC-20 token. 5,000 shares exist; one
+share is 1,000,000 TREAT. The whole supply (5,000,000,000 TREAT) sits in the
+contract and is distributed only through the two paths below. The contract
+has no owner, no admin functions, and no way to mint more.
+
+## Free share (one per wallet, one per X account)
+1. The claimer posts a prepared message on X. The message contains the site
+   link above and the claimer's wallet code (the last 6 hex characters of
+   the claiming wallet address, lowercase).
+2. The claimer submits { wallet, postUrl } to the permit gate. The gate
+   fetches the post, checks the author matches the URL and both markers are
+   present, then returns an EIP-712 permit: { handleHash, deadline,
+   signature } (valid 2 hours).
+3. The claimer calls claimFree(handleHash, deadline, signature) on the
+   contract and receives 1,000,000 TREAT.
+The contract itself enforces one claim per wallet and one claim per X
+handle (handleHash = keccak256 of the lowercase handle). Calls without a
+valid permit are rejected.
+
+## Paid shares (no post needed)
+Call buy(n), 1 to 20 shares per call, paying the exact amount returned by
+quote(n). The price starts at 0.0005 BNB per share and rises by 0.0001 BNB
+after every 250 shares distributed (free claims count toward the ladder),
+up to a top price of 0.0024 BNB for the final 250 shares. 100% of each
+payment is forwarded to the project treasury in the same transaction.
+
+## End of sale
+There is no time limit. The sale ends when all 5,000 shares are distributed.
+
+## Useful contract reads
+totalOut() — shares distributed so far (free + paid)
+priceNow() — current price per share in wei
+quote(n) — total cost in wei of buying n shares now
+freeClaimed(address) — whether a wallet already took its free share
+sharesOf(address) — whole shares held by a wallet
+balanceOf(address) — TREAT balance (18 decimals)
